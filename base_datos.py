@@ -8,6 +8,7 @@ predicciones (vacía, la llena la app).
 import sqlite3
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 RUTA_DB = Path(__file__).parent / "nhanes_presion.db"
@@ -37,7 +38,16 @@ SELECT sexo AS grupo,
        ROUND(100.0 * AVG(presion_elevada), 1) AS pct_elevada
 FROM datos_limpios
 GROUP BY sexo""",
+    "Por consumo de tabaco": """
+SELECT CASE fuma WHEN 'Sí' THEN 'Ha fumado' WHEN 'No' THEN 'No ha fumado' ELSE 'Sin dato' END AS grupo,
+       COUNT(*) AS personas,
+       ROUND(100.0 * AVG(presion_elevada), 1) AS pct_elevada
+FROM datos_limpios
+GROUP BY grupo
+ORDER BY personas DESC""",
 }
+
+CATEGORICAS = ["sexo", "fuma", "alcohol", "educacion", "estado_civil"]
 
 
 def conectar():
@@ -69,7 +79,7 @@ def guardar_prediccion(entrada, modelo, probabilidad, umbral, resultado, probabi
     asegurar_tabla_predicciones()
     columnas = ["edad", "sexo", "imc", "cintura_cm", "fuma", "alcohol", "educacion",
                 "estado_civil", "personas_hogar", "ratio_ingreso_pobreza"]
-    valores = [entrada[c] for c in columnas] + [modelo, float(probabilidad), float(umbral),
+    valores = [None if pd.isna(entrada[c]) else entrada[c] for c in columnas] + [modelo, float(probabilidad), float(umbral),
                                                 resultado, float(probabilidad_lr)]
     with conectar() as con:
         con.execute(
@@ -121,3 +131,14 @@ def resumen_datos():
                           COUNT(*) AS registros_limpios,
                           ROUND(100.0 * AVG(presion_elevada), 1) AS pct_elevada
                    FROM datos_limpios""").iloc[0]
+
+
+def datos_prueba():
+    """Conjunto de prueba (el mismo del notebook) leído desde las tablas
+    datos_limpios y particiones. Devuelve (X, y)."""
+    datos = leer("""SELECT d.* FROM datos_limpios d
+                    JOIN particiones p ON p.SEQN = d.SEQN
+                    WHERE p.conjunto = 'test'
+                    ORDER BY d.SEQN""")
+    datos[CATEGORICAS] = datos[CATEGORICAS].astype(object).where(datos[CATEGORICAS].notna(), np.nan)
+    return datos.drop(columns=["SEQN", "presion_elevada"]), datos["presion_elevada"].astype(int)

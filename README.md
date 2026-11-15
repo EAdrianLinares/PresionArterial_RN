@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # App Streamlit – Tamizaje de presión arterial elevada (ACA 2)
 
 Aplicación que estima la probabilidad de presión arterial elevada (≥ 130/80 mmHg) con redes neuronales: un MLP con embeddings y un FT-Transformer, entrenados con NHANES 2015-2016. Los datos, las métricas y el historial de predicciones viven en una base SQLite.
@@ -9,6 +8,7 @@ Aplicación que estima la probabilidad de presión arterial elevada (≥ 130/80 
 app_presion/
 ├── app.py                  # interfaz Streamlit
 ├── base_datos.py           # consultas a SQLite
+├── analisis.py            # métricas por umbral y curvas para la pestaña de desempeño
 ├── modelos_nn.py           # arquitecturas PyTorch (las mismas del notebook)
 ├── requirements.txt        # lo genera el notebook con las versiones exactas
 ├── nhanes_presion.db       # lo genera el notebook
@@ -38,6 +38,3 @@ app_presion/
 4. `requirements.txt` instala PyTorch en versión CPU, que es más liviana que la versión con GPU.
 
 **Nota:** el historial de predicciones se guarda en `nhanes_presion.db`. En Streamlit Cloud el disco es temporal, así que el historial se reinicia cuando la app se vuelve a desplegar.
-=======
-ok
->>>>>>> 7d2e67e95938f9b5d13d15523c324644a6a2180d
