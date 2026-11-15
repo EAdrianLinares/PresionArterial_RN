@@ -1,0 +1,75 @@
+{
+  "modelo_principal": "MLP",
+  "modelos": {
+    "MLP": {
+      "tipo": "mlp",
+      "hiper": {
+        "emb_dim": 4,
+        "capas": [
+          32,
+          16
+        ],
+        "dropout": 0.3
+      },
+      "archivo": "mlp.pt",
+      "umbral": 0.33
+    },
+    "FT-Transformer": {
+      "tipo": "ft",
+      "hiper": {
+        "d": 32,
+        "capas": 2,
+        "cabezas": 4,
+        "dropout": 0.1
+      },
+      "archivo": "ft.pt",
+      "umbral": 0.28
+    }
+  },
+  "preprocesador": "preprocesador_nn.joblib",
+  "regresion_logistica": "regresion_logistica.joblib",
+  "cardinalidades": [
+    3,
+    4,
+    4,
+    8,
+    9
+  ],
+  "categorias": {
+    "sexo": [
+      "Hombre",
+      "Mujer"
+    ],
+    "fuma": [
+      "No",
+      "No responde",
+      "Sí"
+    ],
+    "alcohol": [
+      "No",
+      "No responde",
+      "Sí"
+    ],
+    "educacion": [
+      "9.º a 11.º grado",
+      "Bachiller",
+      "Menos de 9.º grado",
+      "No aplica (menor de 20)",
+      "No responde",
+      "Técnico o universidad incompleta",
+      "Universitario o más"
+    ],
+    "estado_civil": [
+      "Casado(a)",
+      "Divorciado(a)",
+      "No aplica (menor de 20)",
+      "No responde",
+      "Separado(a)",
+      "Soltero(a)",
+      "Unión libre",
+      "Viudo(a)"
+    ]
+  },
+  "recall_minimo": 0.85,
+  "registros_entrenamiento": 3884
+}
