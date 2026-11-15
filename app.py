@@ -43,14 +43,15 @@ with st.sidebar:
     st.caption("ACA 2 · Aprendizaje Automático · CUN")
     nombres = list(predictores)
     principal = config["modelo_principal"]
+    st.subheader("Opciones técnicas")
     nombre_modelo = st.selectbox(
         "Red neuronal", nombres, index=nombres.index(principal),
         help="El modelo principal es el de mejor AUC en validación.")
     predictor = predictores[nombre_modelo]
-    st.markdown(
-        f"**Umbral de decisión:** {predictor.umbral:.2f}  \n"
-        f"Elegido con validación para lograr un recall ≥ {config['recall_minimo']:.0%}: "
-        "se prioriza no dejar pasar personas con presión alta.")
+    st.caption(
+        f"Umbral de decisión: {predictor.umbral:.2f}. Si la probabilidad de la red es igual o mayor, "
+        f"la app muestra «riesgo alto». Se eligió con validación para detectar al menos el "
+        f"{config['recall_minimo']:.0%} de los casos.")
     st.divider()
     st.markdown(
         "**Integrantes**  \nEyner Adrián Linares Lopez  \nDaniel Alejandro Roncancio Rodriguez  \n"
@@ -147,20 +148,33 @@ with tab_riesgo:
     if "ultimo" in st.session_state:
         r = st.session_state["ultimo"]
         st.divider()
-        m1, m2, m3 = st.columns(3)
-        m1.metric(f"Probabilidad ({r['modelo']})", f"{r['prob']:.0%}")
-        m2.metric("Regresión logística (ACA 1)", f"{r['prob_lr']:.0%}",
-                  delta=f"{(r['prob_lr'] - r['prob']) * 100:+.0f} pp frente a la red", delta_color="off")
-        m3.metric("Umbral de alerta", f"{r['umbral']:.0%}")
-        st.progress(min(max(r["prob"], 0.0), 1.0))
+        imc_r = r["entrada"]["imc"]
+        categoria_imc = ("bajo peso" if imc_r < 18.5 else "peso normal" if imc_r < 25
+                         else "sobrepeso" if imc_r < 30 else "obesidad")
         if r["resultado"] == "Elevada":
-            st.error("**Riesgo alto de presión arterial elevada.** Se recomienda medirse la presión "
-                     "en un centro de salud o farmacia y consultar con un profesional.")
+            st.error("### Riesgo alto de presión arterial elevada\n"
+                     "Sus datos se parecen a los de personas que tenían la presión arterial elevada "
+                     "(130/80 mmHg o más). **Le recomendamos medirse la presión** en un centro de salud o "
+                     "una farmacia y, si sale alta, consultar con un profesional de la salud.")
         else:
-            st.success("**Riesgo por debajo del umbral de alerta.** Aun así, se recomienda medirse "
-                       "la presión al menos una vez al año.")
+            st.success("### Riesgo bajo de presión arterial elevada\n"
+                       "Sus datos no muestran señales de alerta. Aun así, la presión alta muchas veces no da "
+                       "síntomas: **se recomienda medirla al menos una vez al año.**")
+        st.markdown(f"**Su IMC:** {imc_r} ({categoria_imc}, según la clasificación de la OMS).")
+        st.caption("Este resultado es una orientación, no un diagnóstico. La única forma de saber si tiene la "
+                   "presión alta es medirla.")
 
-        with st.expander("¿Cómo cambia el riesgo si cambia el IMC o la edad?"):
+        with st.expander("Detalles técnicos del resultado"):
+            st.caption("Información para el equipo y el docente; no está pensada para el paciente.")
+            m1, m2, m3 = st.columns(3)
+            m1.metric(f"Probabilidad ({r['modelo']})", f"{r['prob']:.0%}")
+            m2.metric("Regresión logística (ACA 1)", f"{r['prob_lr']:.0%}",
+                      delta=f"{(r['prob_lr'] - r['prob']) * 100:+.0f} pp frente a la red", delta_color="off")
+            m3.metric("Umbral de alerta", f"{r['umbral']:.0%}")
+            st.caption("La app muestra «riesgo alto» cuando la probabilidad de la red es igual o mayor que el "
+                       "umbral. Durante el entrenamiento se dio más peso a los casos de presión elevada, por lo "
+                       "que la probabilidad sirve para ordenar el riesgo, no como un porcentaje literal.")
+            st.markdown("**¿Cómo cambia la probabilidad si cambia el IMC o la edad?**")
             base = pd.DataFrame([r["entrada"]])[VARIABLES]
             rango_imc = np.arange(18, 45.5, 0.5)
             sim_imc = pd.concat([base.assign(imc=v) for v in rango_imc], ignore_index=True)
